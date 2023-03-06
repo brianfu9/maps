@@ -48,7 +48,7 @@ function handler(e) {
     }
 
     if (pointDistance) {
-        myDistance.innerHTML = pointDegree + ' degrees, ' + pointDistance.toFixed(2) + ' miles';
+        myDistance.innerHTML = pointDegree + ' degrees, ' + pointDistance.toFixed(2) + ' miles' + ' compass: ' + compass;
     }
 }
 
@@ -85,6 +85,7 @@ async function getGeocode(address) {
             return;
         }
         point = data['result']['addressMatches'][0]['coordinates'];
+        return;
     }).done(function () {
         alert('set point: ', point)
         navigator.geolocation.getCurrentPosition(locationHandler);
