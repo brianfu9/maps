@@ -36,15 +36,15 @@ async function startCompass() {
 }
 
 function handler(e) {
-    console.log('handler updating...', '\npointDegree: ', pointDegree, '\npointDistance: ', pointDistance)
     compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
+    console.log('handler updating...', '\npointDegree: ', pointDegree, '\npointDistance: ', pointDistance, '\ncompass: ', compass)
     compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
 
     // ±15 degree
     if (Math.abs(compass - pointDegree) < 15 || Math.abs(compass - pointDegree) > 345) {
-        myPoint.style.opacity = 0;
-    } else if (pointDegree) {
         myPoint.style.opacity = 1;
+    } else if (pointDegree) {
+        myPoint.style.opacity = 0;
     }
 
     if (pointDistance) {
@@ -81,12 +81,12 @@ async function getGeocode(address) {
         cache: false,
     }).done(function (data) {
         if (data['result']['addressMatches'].length == 0) {
-            console.log('No matches found');
+            alert('No matches found');
             return;
         }
         point = data['result']['addressMatches'][0]['coordinates'];
     }).done(function () {
-        console.log('set point: ', point)
+        alert('set point: ', point)
         navigator.geolocation.getCurrentPosition(locationHandler);
     });
 }
