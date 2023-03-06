@@ -41,19 +41,14 @@ function handler(e) {
     compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
 
     // ±15 degree
-    if (
-        (pointDegree < Math.abs(compass) &&
-            pointDegree + 15 > Math.abs(compass)) ||
-        pointDegree > Math.abs(compass + 15) ||
-        pointDegree < Math.abs(compass)
-    ) {
+    if (Math.abs(compass - pointDegree) < 15 || Math.abs(compass - pointDegree) > 345) {
         myPoint.style.opacity = 0;
     } else if (pointDegree) {
         myPoint.style.opacity = 1;
     }
 
     if (pointDistance) {
-        myDistance.innerHTML = pointDistance.toFixed(2) + ' miles';
+        myDistance.innerHTML = pointDegree + ' degrees, ' + pointDistance.toFixed(2) + ' miles';
     }
 }
 
