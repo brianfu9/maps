@@ -1,41 +1,80 @@
-document.addEventListener("DOMContentLoaded", function(event)
-{
+const compassCircle = document.querySelector(".compass-circle");
+const myPoint = document.querySelector(".my-point");
+const startBtn = document.querySelector(".start-btn");
+const isIOS =
+    navigator.userAgent.match(/(iPod|iPhone|iPad)/) &&
+    navigator.userAgent.match(/AppleWebKit/);
 
-	if (window.DeviceOrientationEvent) {
-  document.getElementById("notice").innerHTML = "Genial! La API deviceOrientationEvent es compatible!.";
-  window.addEventListener('deviceorientation', function(eventData) {
-  	// gamma: Tilting the device from left to right. Tilting the device to the right will result in a positive value.
-    var tiltLR = eventData.gamma;
+function init() {
+    startBtn.addEventListener("click", startCompass);
+    navigator.geolocation.getCurrentPosition(locationHandler);
 
-    // beta: Tilting the device from the front to the back. Tilting the device to the front will result in a positive value.
-    var tiltFB = eventData.beta;
-
-    // alpha: The direction the compass of the device aims to in degrees.
-    var dir = eventData.alpha
-
-    // Call the function to use the data on the page.
-    deviceOrientationHandler(tiltLR, tiltFB, dir);
-  }, false);
-} else {
-  document.getElementById("notice").innerHTML = "Helaas. De DeviceOrientationEvent API word niet door dit toestel ondersteund."
-};
-
-  function deviceOrientationHandler(tiltLR, tiltFB, dir) 
-  {
-      document.getElementById("tiltLR").innerHTML = Math.ceil(tiltLR);
-      document.getElementById("tiltFB").innerHTML = Math.ceil(tiltFB);
-      
-      // Rotate the disc of the compass.
-      var compassDisc = document.getElementById("compassDiscImg");
-    
-      var offset = 135;
-     var totalDir = -(dir + offset);
-    
-    
-      document.getElementById("direction").innerHTML = "dir: " + Math.ceil(dir)  + " + offset("+offset+") = " + Math.ceil(totalDir);
-    
-      compassDisc.style.left =  totalDir +"px";
-    
+    if (!isIOS) {
+        window.addEventListener("deviceorientationabsolute", handler, true);
     }
+}
 
-});
+function startCompass() {
+    if (isIOS) {
+        DeviceOrientationEvent.requestPermission()
+            .then((response) => {
+                if (response === "granted") {
+                    window.addEventListener("deviceorientation", handler, true);
+                } else {
+                    alert("has to be allowed!");
+                }
+            })
+            .catch(() => alert("not supported"));
+    }
+}
+
+function handler(e) {
+    compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
+    compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+
+    // ±15 degree
+    if (
+        (pointDegree < Math.abs(compass) &&
+            pointDegree + 15 > Math.abs(compass)) ||
+        pointDegree > Math.abs(compass + 15) ||
+        pointDegree < Math.abs(compass)
+    ) {
+        myPoint.style.opacity = 0;
+    } else if (pointDegree) {
+        myPoint.style.opacity = 1;
+    }
+}
+
+let pointDegree;
+
+function locationHandler(position) {
+    const { latitude, longitude } = position.coords;
+    pointDegree = calcDegreeToPoint(latitude, longitude);
+
+    if (pointDegree < 0) {
+        pointDegree = pointDegree + 360;
+    }
+}
+
+function calcDegreeToPoint(latitude, longitude) {
+    // Qibla geolocation
+    const point = {
+        lat: 21.422487,
+        lng: 39.826206
+    };
+
+    const phiK = (point.lat * Math.PI) / 180.0;
+    const lambdaK = (point.lng * Math.PI) / 180.0;
+    const phi = (latitude * Math.PI) / 180.0;
+    const lambda = (longitude * Math.PI) / 180.0;
+    const psi =
+        (180.0 / Math.PI) *
+        Math.atan2(
+            Math.sin(lambdaK - lambda),
+            Math.cos(phi) * Math.tan(phiK) -
+            Math.sin(phi) * Math.cos(lambdaK - lambda)
+        );
+    return Math.round(psi);
+}
+
+init();
